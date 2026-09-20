@@ -1,4 +1,3 @@
 # Whatsapp-Bot
 
-Jancok
-tempek
+Base Bot whatsapp Type Script
