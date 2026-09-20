@@ -25,6 +25,8 @@ String.prototype.req = function <T = any>(): Promise<T> {
 export {}*/
 
 // string.prototype.ts
+import { pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
 
 declare global {
     interface String {
@@ -68,8 +70,10 @@ String.prototype.import = function <T = any>(): Promise<T> {
  * const config = await "./config.js".req()
  * const plugin = await `./plugins/${name}.js`.req()
  */
-String.prototype.req = function <T = any>(): Promise<T> {
-    return import(this.toString()) as Promise<T>
-}
+
+String.prototype.req = function <T = any>(bust = false): Promise<T> {
+  const url = pathToFileURL(resolve(process.cwd(), this.toString())).href;
+  return import(bust ? `${url}?t=${Date.now()}` : url) as Promise<T>;
+};
 
 export {}
