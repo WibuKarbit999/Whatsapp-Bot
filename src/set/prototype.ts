@@ -10,7 +10,7 @@ import fs from 'fs';
 import path from 'node:path';
 import pino from 'pino';
 import util from 'util';
-import './src/set/String.prototype.js';
+import './String.prototype.js';
 
 // ==========================================
 // 1. DEKLARASI TIPE TYPESCRIPT (WAJIB)
