@@ -1,1 +1,4 @@
 # Whatsapp-Bot
+
+Jancok
+tempek
