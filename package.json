@@ -1,0 +1,19 @@
+{
+  "name": "WaguriMD",
+  "version": "0.0.1",
+  "description": "Whatsapo Bot Baileys Biasa",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "ping": "ping",
+    "test": "start",
+    "start": "node .",
+    "prettier": "node prettier.js"
+  },
+  "keywords": [],
+  "author": "Indra Muarif / Wibu Karbit",
+  "depedencies": {
+    "@whiskeysockets/baileys": "latest",
+    ""
+  }
+}
