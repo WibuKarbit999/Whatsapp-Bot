@@ -18,7 +18,7 @@
   "depedencies": {
     "@whiskeysockets/baileys": "latest",
     "axios": "^1.7.8",
-    "napi-rs/canvas": "latest",
+    "@napi-rs/canvas": "latest",
     "chalk": "^3.0.0",
     "cheerio": "^1.0.0-rc.12",
     "chokidar": "3.6.0",
