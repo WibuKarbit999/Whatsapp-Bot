@@ -5,11 +5,12 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "ping": "ping",
+    "ping": "tsc",
     "test": "start",
     "start": "tsx index.ts",
     "prettier": "node prettier.js",
-    "dev": "tsx --watch index.ts"
+    "dev": "tsx --watch index.ts",
+    "check": "npx tsc --noEmit"
   },
   "keywords": [],
   "license": "MIT",
