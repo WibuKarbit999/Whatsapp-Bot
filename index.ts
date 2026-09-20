@@ -1,4 +1,4 @@
-// @type
+// @ts-check
 /*!===[ Prototype ]===!*/
 import './src/set/prototype.js';
 
