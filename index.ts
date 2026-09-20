@@ -13,11 +13,11 @@ const { boom } = 'boom'.import();
 const Event = (await 'events'.import()).default;
 
 /*!====[ File Import ]====!*/
-let { initgiwitdiririt } = `${folder[2]}global.ts`;
+let { initialize } = `${folder[2]}global.ts`;
 const  { Connecting } = `${folder[5]}Conection.ts`.req();
 
 let {
-  makeWaSocket,
+  makeWASocket,
   useMultiFileAuthState,
   DisconnectReason,
   getContentType,
@@ -29,7 +29,7 @@ Event.defaultMaxListeners = 30;
 let logger = pino({ level: 'silent' });
 let storage 
 let Func 
-await initgiwitdiririt;
+await initialize;
 
 let Bit, Detector;
 
@@ -127,7 +127,7 @@ async function launch() {
     ?.split(".")
     .map(Number)
 
-     Bit = makeWaSocket({
+     Bit = makeWASocket({
        logger,
        version: [
          2,
