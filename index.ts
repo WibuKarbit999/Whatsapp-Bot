@@ -16,10 +16,9 @@ const pino = (await 'pino'.import()).default;
 const baileys = await '@whiskeysockets/baileys'.import();
 const { EventEmitter } = await 'node:events'.import();
 
-const { useMultiFileAuthState, DisconnectReason, Browsers, fetchLatestBaileysVersion, getContentType } = baileys;
-const makeWASocket = baileys.makeWASocket ?? baileys.default?.default ?? baileys.default;
+const { useMultiFileAuthState, makeWASocket, DisconnectReason, Browsers, fetchLatestBaileysVersion, getContentType } = baileys;
 
-EventEmitter.defaultMaxListeners = 30;
+EventEmitter.defaultMaxListeners = 25;
 
 const logger = pino({ level: 'silent' });
 let Bit: any;
