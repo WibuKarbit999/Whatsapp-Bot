@@ -1,39 +1,167 @@
-// @ts-check
-/*!===[ Prototype ]===!*/
-import './src/set/prototype.js';
+/*!===[ Prototype & global ]===!*/
+import './src/set/prototype.js'; // String.prototype.import / .req dan global (chalk, fs, dst.)
+import './src/set/global.js'; // session, Folder, pairingCode, debug
 
-// ======[ Moduke Import ] =======
-const path = 'path'.import();
-const readline = 'readline'.import();
-const fs = await 'fs/promises'.import;
-const chalk = 'chalk'.import;
-const baileys = 'baileys'.import();
-const pino = 'pino'.import();
-const { boom } = 'boom'.import();
-const Event = (await 'events'.import()).default;
+/*!===[ File lokal ]===!*/
+// Pakai import biasa (bukan .req) supaya func.ts dan handler.ts cuma dimuat satu kali
+import * as Func from './src/func.js';
+import { Connecting } from './connection/connection.js';
+import { startHandler, handleMessage, runEvent } from './helpers/handler.js';
 
-/*!====[ File Import ]====!*/
-let { initialize } = `${folder[2]}global.ts`;
-const  { Connecting } = `${folder[5]}Conection.ts`.req();
+/*!===[ Package ]===!*/
+const readline = await 'node:readline'.import();
+const fs = await 'node:fs/promises'.import();
+const chalk = (await 'chalk'.import()).default;
+const pino = (await 'pino'.import()).default;
+const baileys = await '@whiskeysockets/baileys'.import();
+const { EventEmitter } = await 'node:events'.import();
 
-let {
-  makeWASocket,
-  useMultiFileAuthState,
-  DisconnectReason,
-  getContentType,
-  Browsers,
-} = baileys;
+const { useMultiFileAuthState, DisconnectReason, Browsers, fetchLatestBaileysVersion, getContentType } = baileys;
+const makeWASocket = baileys.makeWASocket ?? baileys.default?.default ?? baileys.default;
 
-Event.defaultMaxListeners = 30;
+EventEmitter.defaultMaxListeners = 30;
 
-let logger = pino({ level: 'silent' });
-let storage 
-let Func 
-await initialize;
-
-let Bit, Detector;
+const logger = pino({ level: 'silent' });
+let Bit: any;
 
 /*!====[ DEBUG ]====!*/
+function debugLogMessage(message: any, type = 'notify') {
+  if (!message?.key || message.key.fromMe) return;
+
+  try {
+    const { key } = message;
+    const jid: string = key.remoteJid ?? 'unknown';
+
+    const chatType =
+      jid === 'status@broadcast'
+        ? 'STATUS'
+        : jid.endsWith('@g.us')
+          ? 'GROUP'
+          : jid.endsWith('@newsletter')
+            ? 'CHANNEL'
+            : 'PRIVATE';
+
+    const sender = key.participant ?? message.participant ?? jid;
+    const contentType =
+      getContentType(message.message) ?? (message.messageStubType ? `stub:${message.messageStubType}` : 'unknown');
+
+    const ts = message.messageTimestamp;
+    const time = new Date((ts ? Number(typeof ts === 'object' ? ts.low : ts) : Date.now() / 1000) * 1000).toLocaleString('id-ID');
+
+    console.log(
+      [
+        `╭─ 🐞 ${type.toUpperCase()}`,
+        `│ Chat    : ${chatType}`,
+        `│ Sender  : ${message.pushName ?? '-'}`,
+        `│ JID     : ${sender}`,
+        `│ Type    : ${contentType}`,
+        `│ ID      : ${key.id ?? '-'}`,
+        `│ Time    : ${time}`,
+        `╰──────────────`,
+      ].join('\n')
+    );
+  } catch (error) {
+    console.error('[DEBUG] Failed to log message:', error);
+  }
+}
+
+/*!====[ Input console ]====!*/
+// Satu pertanyaan, lalu ditutup lagi supaya tidak menahan stdin
+const ask = (text: string) =>
+  new Promise<string>((resolve) => {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(text, (answer: string) => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+
+/*!====[ Jalankan bot ]====!*/
+async function launch() {
+  try {
+    const credsFile = session + '/creds.json';
+
+    // Folder sesi ada tapi creds.json tidak ada = sesi setengah jadi, buang
+    if ((await Func.exists(session)) && !(await Func.exists(credsFile))) {
+      await fs.rm(session, { recursive: true, force: true });
+    }
+
+    // Belum punya sesi: pilih cara menautkan
+    if (!(await Func.exists(credsFile))) {
+      console.log(
+        `\n${chalk.red('================================')}\n` +
+          `${chalk.red('Bot belum memiliki Session!')}\n` +
+          `${chalk.red('================================')}\n\n` +
+          `${chalk.blue('Pilih salah satu untuk menautkan perangkat:')}\n\n` +
+          `${chalk.red('• pairing')}\n${chalk.red('• qr')}\n`
+      );
+      await Func.sleep(1500);
+
+      let pilih = '';
+      while (pilih !== 'pairing' && pilih !== 'qr') {
+        pilih = (await ask(chalk.yellow.bold('Ketik pairing atau qr: '))).toLowerCase();
+      }
+      global.pairingCode = pilih === 'pairing';
+    }
+
+    const { state, saveCreds } = await useMultiFileAuthState(session);
+    const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: undefined }));
+
+    Bit = makeWASocket({
+      logger,
+      version,
+      browser: Browsers.ubuntu('Chrome'),
+      auth: state,
+      retryRequestDelayMs: 5500,
+      maxMsgRetryCount: 2,
+      getMessage: async () => undefined,
+      cachedGroupMetadata: async (jid: string) => Func.metadata.get(jid),
+      syncFullHistory: false,
+    });
+
+    // Login pakai pairing code
+    if (global.pairingCode && !Bit.authState.creds.registered) {
+      const phone = (await ask('Tolong masukkan nomor WhatsApp anda (contoh 628123456789): ')).replace(/\D/g, '');
+      await Func.sleep(1000);
+      const code = await Bit.requestPairingCode(phone);
+
+      console.log(
+        `\n======================================\n` +
+          `| ${chalk.yellow('Kode Pairing Anda:')} ${code}\n` +
+          `| Buka WhatsApp > Perangkat tertaut > Tautkan perangkat > Tautkan dengan nomor telepon, lalu masukkan kode itu.\n` +
+          `======================================\n`
+      );
+    }
+
+    /*!====[ EVENT ]====!*/
+    Bit.ev.on('connection.update', (update: any) => {
+      Connecting({ Bit, update, launch }).catch(console.error);
+    });
+
+    Bit.ev.on('creds.update', saveCreds);
+
+    Bit.ev.on('messages.upsert', ({ type, messages }: any) => {
+      for (const message of messages) {
+        if (global.debug && !message?.key?.fromMe) debugLogMessage(message, type);
+        if (type !== 'notify') continue;
+        handleMessage(Bit, message).catch((e: any) => console.error('[handler]', e));
+      }
+    });
+
+    // Cache metadata grup tetap segar (lewat antrean, supaya tidak kena limit)
+    Bit.ev.on('groups.upsert', (list: any[]) => list.forEach((g) => Func.queueMetadata(Bit, g.id)));
+    Bit.ev.on('groups.update', (list: any[]) => list.forEach((g) => g.id && Func.queueMetadata(Bit, g.id)));
+    Bit.ev.on('group-participants.update', (event: any) => {
+      Func.queueMetadata(Bit, event.id);
+      runEvent('group.participants', { Bit, event });
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+await startHandler(); // muat plugin (sekali saja, bukan tiap reconnect)
+launch();
 function debugLogMessage(message, type = "notify") {
     if (!message?.key || message.key.fromMe) return
 
