@@ -7,13 +7,29 @@
   "scripts": {
     "ping": "ping",
     "test": "start",
-    "start": "node .",
-    "prettier": "node prettier.js"
+    "start": "tsx index.ts",
+    "prettier": "node prettier.js",
+    "dev": "tsx --watch index.ts"
   },
   "keywords": [],
+  "license": "MIT",
   "author": "Indra Muarif / Wibu Karbit",
   "depedencies": {
     "@whiskeysockets/baileys": "latest",
-    ""
+    "axios": "^1.7.8",
+    "napi-rs/canvas": "latest",
+    "chalk": "^3.0.0",
+    "cheerio": "^1.0.0-rc.12",
+    "chokidar": "3.6.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "jimp": "^0.16.1",
+    "qrcode": "^1.5.4",
+    "moment-timezone": "^0.5.33"
+  },
+  "devDepedencies": {
+    "@types/node": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "prettier": "^3.8.3"
   }
 }
