@@ -424,10 +424,7 @@ export const smsg = (Bit: any, cht: any): any => {
 
   return cht;
 };
-  url.match(
-    /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/gi
-  );
-
+  
 /*!====[ Serializer pesan (cht) ]====!*/
 // Bit = socket Baileys, cht = pesan mentah dari messages.upsert
 // Catatan: cht.id = ID pesan, cht.chat = JID chat
